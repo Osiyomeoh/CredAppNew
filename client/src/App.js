@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import Main from "./main.js";
+import StakerInfo from "./components/stakerInfo";
 import Footer from "./components/Footer";
 import Connect from "./components/connect";
 import Spinner from "./components/Spinner/Spinner.js";
@@ -33,7 +34,7 @@ class App extends Component {
     const web3 = window.web3;
     const accounts = await web3.eth.getAccounts();
 
-    console.log(accounts);
+  
     this.setState({ account: accounts[0] });
     const networkId = await web3.eth.net.getId();
 
@@ -78,11 +79,19 @@ class App extends Component {
         tokenfarmData.address
       );
       this.setState({ tokenfarm });
-      let stakingBalance = await tokenfarm.methods
+      let stakingBalance = await tokenfarm.methods  
         .stakingBalance(this.state.account)
         .call();
       this.setState({ stakingBalance: stakingBalance.toString() });
-      console.log(stakingBalance)
+      let stakers = await tokenfarm.methods
+      .stakers(this.state.account)
+      this.setState({ stakers: stakers.toString() });
+      console.log(stakers)
+      let stakeInfo = await tokenfarm.methods
+      .stakeInfo(this.state.account)
+      this.setState({ stakeInfo: stakeInfo.toString() });
+      console.log(stakeInfo)
+      
     } else {
       window.alert(
         "TokenFarm not deployed to current network. Please switch to a compatible network."
@@ -118,7 +127,8 @@ class App extends Component {
       };
     }
   };
-
+  
+  
   stakeTokens = (amount) => {
     this.setState({ loading: true });
     this.state.credtoken.methods
@@ -218,6 +228,8 @@ class App extends Component {
             connectWallet={this.connectWallet}
             claimTokens={this.claimTokens}
             stakingBalance={this.state.stakingBalance}
+            stakers={this.stakers}
+            stakerInfo={this.stakerInfo}
            
           />
         ));
@@ -243,6 +255,7 @@ class App extends Component {
               <div>{content}</div>
             </main>
           </div>
+          <StakerInfo/>
           <Footer />
         </div>
       </div>
