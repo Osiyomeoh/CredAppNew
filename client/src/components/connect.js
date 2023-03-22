@@ -77,6 +77,7 @@ const Connect = () => {
               Documentation
             </Button>
           </li>
+          
         </ul>
 
         {/* Crypto prices */}

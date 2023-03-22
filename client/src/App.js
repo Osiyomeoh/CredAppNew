@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import Main from "./main.js";
-import StakerInfo from "./components/stakerInfo";
+import { Table } from "react-bootstrap";
+import { Stakers } from "./Stakers.1";
+// import StakerInfo from "./components/stakerInfo";
 import Footer from "./components/Footer";
 import Connect from "./components/connect";
 import Spinner from "./components/Spinner/Spinner.js";
@@ -11,13 +13,23 @@ import TokenFarm from "./utils/TokenFarm.json";
 import ParticleSettings from "./components/ParticleSettings.js";
 import { Signer } from "crypto";
 import { TransactionProvider } from "./context/TransactionContext.jsx";
+import {
+  BrowserRouter as Router,
+  Route,
+  Switch,
+  Link,
+  withRouter,
+  BrowserRouter
+} from "react-router-dom";
 
 class App extends Component {
+  
   async componentWillMount() {
     await this.loadWeb3();
     await this.loadBlockchainData();
   }
   async loadWeb3() {
+    
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum);
       await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -73,34 +85,57 @@ class App extends Component {
 
     //Load TokenFarm contract.
     const tokenfarmData = TokenFarm.networks[networkId];
-    if (tokenfarmData) {
-      const tokenfarm = new web3.eth.Contract(
-        TokenFarm.abi,
-        tokenfarmData.address
-      );
-      this.setState({ tokenfarm });
-      let stakingBalance = await tokenfarm.methods  
+if (tokenfarmData) {
+  const tokenfarm = new web3.eth.Contract(
+    TokenFarm.abi,
+    tokenfarmData.address
+  );
+  this.setState({ tokenfarm });
+        let stakingBalance = await tokenfarm.methods
         .stakingBalance(this.state.account)
         .call();
       this.setState({ stakingBalance: stakingBalance.toString() });
-      let stakers = await tokenfarm.methods
-      .stakers(this.state.account)
-      this.setState({ stakers: stakers.toString() });
-      console.log(stakers)
-      let stakeInfo = await tokenfarm.methods
-      .stakeInfo(this.state.account)
-      this.setState({ stakeInfo: stakeInfo.toString() });
-      console.log(stakeInfo)
-      
-    } else {
-      window.alert(
-        "TokenFarm not deployed to current network. Please switch to a compatible network."
-      );
+
+  const loadStakeEvents = async () => {
+    try {
+      const events = await tokenfarm.getPastEvents("Staked", { fromBlock: 0 });
+      const stakeEvents = events.map((event) => ({
+        staker: event.returnValues.staker,
+        amount: event.returnValues.amount,
+        timestamp: event.returnValues.timestamp,
+      }));
+      this.setState({ stakeEvents });
+      console.log(stakeEvents);
+    } catch (error) {
+      console.log(error);
     }
+  };
 
-    this.setState({ loading: false });
+  loadStakeEvents();
+
+  const eventEmitter = tokenfarm.events.Staked();
+  eventEmitter.on("data", (event) => {
+    const newStakeEvent = {
+      staker: event.returnValues.staker,
+      amount: event.returnValues.amount,
+      timestamp: event.returnValues.timestamp,
+    };
+    this.setState({
+      stakeEvents: [...this.state.stakeEvents, newStakeEvent],
+    });
+  });
+  eventEmitter.removeAllListeners();
+  // return () => {
+  //    eventEmitter.removeAllListeners();
+  // };
+} else {
+  window.alert(
+    "TokenFarm not deployed to current network. Please switch to a compatible network."
+  );
+}
+
+this.setState({ loading: false });
   }
-
   isConnected = async () => Signer !== undefined;
   connectWallet = async () => {
     if (window.ethereum) {
@@ -186,6 +221,7 @@ class App extends Component {
       credtoken: {},
       gains: {},
       tokenfarm: {},
+      stakeEvents:[],
       credtokenBalance: "0",
       gainsTokenBalance: "0",
       stakingBalance: "0",
@@ -229,7 +265,8 @@ class App extends Component {
             claimTokens={this.claimTokens}
             stakingBalance={this.state.stakingBalance}
             stakers={this.stakers}
-            stakerInfo={this.stakerInfo}
+            account={this.state.account}
+            stakeEvents={this.state.stakeEvents}
            
           />
         ));
@@ -245,17 +282,20 @@ class App extends Component {
         {/* <Navbar account={this.state.account}
       connectWallet={this.connectWallet}
       isConnected={this.isConnected} /> */}
-        <div className="container-fluid mt-5">
-          <div className="row">
-            <main
-              role="main"
-              className="col-lg-5 ml-auto mr-auto"
-              style={{ maxWidth: "100%", minHeight: "100vm" }}
-            >
-              <div>{content}</div>
-            </main>
-          </div>
-          <StakerInfo/>
+       <div className="container-fluid mt-5">
+  <div className="row">
+    <main
+      role="main"
+      className="col-lg-5 col-md-8 col-sm-10 ml-auto mr-auto"
+      style={{ maxWidth: "100%", minHeight: "100vh" }}
+    >
+      <div>{content}</div>
+    </main>
+  </div>
+
+
+        
+
           <Footer />
         </div>
       </div>

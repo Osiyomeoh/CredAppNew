@@ -1,12 +1,103 @@
-import React, { Component } from "react";
+import React, { Component, useContext } from "react";
 import tether from "./images/sym.png";
 import Airdrop from "./components/Airdrop.js";
+import { TransactionContext } from "../src/context/TransactionContext";
+import { Card, Table } from "react-bootstrap";
+import Carousel from 'react-bootstrap/Carousel';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import Blockies from 'react-blockies';
+import Identicon from 'identicon.js';
+import axios from 'axios';
+
+
+
+function shortenAddress(address) {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
+function convertToEther(amount) {
+  return amount / 10 ** 18;
+}
+
+function formatDate(timestamp) {
+  const date = new Date(timestamp * 1000);
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const year = date.getFullYear();
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+}
 
 class Main extends Component {
-  
-  render() {
 
   
+  constructor(props) {
+    super(props);
+    this.state = {
+      historyList: [],
+      count: 0,
+    };
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.stakingBalance !== this.props.stakingBalance) {
+      let date = new Date().toLocaleString();
+      let count = this.state.count + 1;
+      let item = (
+        <li className="list-group-item" key={count}>
+          <div className="row">
+            <div className="col-sm-2">
+              <strong>{count}.</strong>
+            </div>
+            <div className="col-sm-2">
+              <strong>Account:</strong> {this.props.account}
+            </div>
+            <div className="col-sm-2">
+              <strong>Staked:</strong> {window.web3.utils.fromWei(this.props.stakingBalance, "Ether")} mCred
+            </div>
+            <div className="col-sm-2">
+              <strong>Gains:</strong> {window.web3.utils.fromWei(this.props.gainsTokenBalance, "Ether")} Gs
+            </div>
+            <div className="col-sm-4">
+              <strong>Time:</strong> {date}
+            </div>
+          </div>
+        </li>
+      );
+      let historyList = [...this.state.historyList, item];
+      this.setState({ historyList, count });
+    }
+  }
+  render() {
+   
+  const styles = {
+    body: {
+      backgroundColor: "transparent",
+      padding: "0",
+    },
+    carousel: {
+      backgroundColor: "transparent",
+    },
+  card: {
+     backgroundColor: "rgba(255, 255, 255, 0.5)",
+    borderRadius: "10px",
+    boxShadow: "0 0 10px rgba(0, 0, 0, 0.2)",
+    margin: "20px",
+    maxWidth: "400px",
+  },
+  image: {
+    objectFit: "cover",
+    height: "200px",
+    borderRadius: "10px 10px 0 0",
+  },
+  title: {
+    fontSize: "20px",
+    fontWeight: "bold",
+    marginBottom: "0",
+  },
+};
 
     return (
       <div>
@@ -182,7 +273,41 @@ class Main extends Component {
             </div>
           </div>
         </div>
+        <Card bg="transparent" border="light">
+  <Card.Header>
+    <h1>Stake Events</h1>
+  </Card.Header>
+  <Card.Body style={styles.body}>
+    {this.props.stakeEvents ? (
+      <Carousel interval={5000} pause={false} style={{ display: 'flex', justifyContent: 'center' }}>
+        {this.props.stakeEvents.map((event, index) => (
+          <Card key={index} style={{ ...styles.card, width: '400px' }}>
+            <Card.Img
+              variant="top"
+              src={`https://source.unsplash.com/500x300/?technology/${index}`}
+              style={styles.image}
+            />
+            <Card.Body>
+              <Card.Title style={styles.title}>{shortenAddress(event.staker)}</Card.Title>
+              <Card.Text>
+                Amount (ETH): {convertToEther(event.amount).toFixed(4)}
+              </Card.Text>
+              <Card.Text>Timestamp: {formatDate(event.timestamp)}</Card.Text>
+            </Card.Body>
+          </Card>
+        ))}
+      </Carousel>
+    ) : (
+      <p>No stake events found.</p>
+    )}
+  </Card.Body>
+</Card>
+
+
+
+
       </div>
+      
     );
   }
 }
