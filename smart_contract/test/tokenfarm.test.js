@@ -20,10 +20,10 @@ contract("TokenFarm", ([owner, customer]) => {
     gains = await Gains.new();
     tokenfarm = await TokenFarm.new(gains.address, credtoken.address);
 
-    // Transfer all tokens to DecentralBank (1 million)
+    // Transfer all tokens to TokenFarm (1 million)
     await gains.transfer(tokenfarm.address, tokens("1000000"));
 
-    // Transfer 100 mock Tethers to Customer
+    // Transfer 100 mock CredToken to Customer
     await credtoken.transfer(customer, tokens("100"), { from: owner });
   });
 
@@ -98,7 +98,7 @@ contract("TokenFarm", ([owner, customer]) => {
         await tokenfarm.issueTokens({ from: owner });
 
         // // Ensure Only The Owner Can Issue Tokens.
-        // await decentralBank.issueTokens({from: customer}).should.be.rejected;
+        // await TokenFarm.issueTokens({from: customer}).should.be.rejected;
 
         // Unstake Tokens
         await tokenfarm.unstakeTokens({ from: customer });
@@ -112,7 +112,7 @@ contract("TokenFarm", ([owner, customer]) => {
           "customer mock wallet balance after unstaking"
         );
 
-        // Check Updated Balance of Decentral Bank.
+        // Check Updated Balance of TokenFram.
         result = await credtoken.balanceOf(tokenfarm.address);
         assert.equal(
           result.toString(),

@@ -6,6 +6,7 @@ const Footer = () => {
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
       <div className="container-fluid d-flex justify-content-center">
+        {/* Logo */}
         <a className="navbar-brand" href="/">
           <img
             src={bank}
@@ -15,8 +16,10 @@ const Footer = () => {
             alt="bank"
           />
         </a>
+        {/* Copyright */}
         <div className="navbar-text text-white text-center">
           © 2023 Grandida Inc. All rights reserved. | Created by Sam Ale
+          {/* Samuel's Avatar */}
           <img
             src={samuelAvatar}
             width="30"

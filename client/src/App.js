@@ -1,8 +1,6 @@
+//Importing required libraries and components
 import React, { Component } from "react";
 import Main from "./main.js";
-import { Table } from "react-bootstrap";
-import { Stakers } from "./Stakers.1";
-// import StakerInfo from "./components/stakerInfo";
 import Footer from "./components/Footer";
 import Connect from "./components/connect";
 import Spinner from "./components/Spinner/Spinner.js";
@@ -13,23 +11,18 @@ import TokenFarm from "./utils/TokenFarm.json";
 import ParticleSettings from "./components/ParticleSettings.js";
 import { Signer } from "crypto";
 import { TransactionProvider } from "./context/TransactionContext.jsx";
-import {
-  BrowserRouter as Router,
-  Route,
-  Switch,
-  Link,
-  withRouter,
-  BrowserRouter
-} from "react-router-dom";
 
+//Defining the App component
 class App extends Component {
-  
+  //Function called before rendering, loads the Web3 instance and blockchain data
   async componentWillMount() {
     await this.loadWeb3();
     await this.loadBlockchainData();
   }
+
+  //Loads the Web3 instance
   async loadWeb3() {
-    
+    //Check if the browser has an Ethereum wallet (e.g. Metamask) installed
     if (window.ethereum) {
       window.web3 = new Web3(window.ethereum);
       await window.ethereum.request({ method: "eth_requestAccounts" });
@@ -42,15 +35,18 @@ class App extends Component {
       );
     }
   }
+
+  //Loads the blockchain data, including contracts and account balance
   async loadBlockchainData() {
     const web3 = window.web3;
     const accounts = await web3.eth.getAccounts();
-
-  
+    //Set the first account as the user's account
     this.setState({ account: accounts[0] });
+
+    //Get the network ID of the current network
     const networkId = await web3.eth.net.getId();
 
-    //Load Cred Token.
+    //Load Cred Token
     const credtokenData = CredToken.networks[networkId];
     if (credtokenData) {
       const credtoken = new web3.eth.Contract(
@@ -68,7 +64,7 @@ class App extends Component {
       );
     }
 
-    //Load Gains token.
+    //Load Gains token
     const gainsTokenData = Gains.networks[networkId];
     if (gainsTokenData) {
       const gains = new web3.eth.Contract(Gains.abi, gainsTokenData.address);
@@ -85,56 +81,62 @@ class App extends Component {
 
     //Load TokenFarm contract.
     const tokenfarmData = TokenFarm.networks[networkId];
-if (tokenfarmData) {
-  const tokenfarm = new web3.eth.Contract(
-    TokenFarm.abi,
-    tokenfarmData.address
-  );
-  this.setState({ tokenfarm });
-        let stakingBalance = await tokenfarm.methods
+    if (tokenfarmData) {
+      const tokenfarm = new web3.eth.Contract(
+        TokenFarm.abi,
+        tokenfarmData.address
+      );
+      this.setState({ tokenfarm });
+
+      // Load staking balance
+      let stakingBalance = await tokenfarm.methods
         .stakingBalance(this.state.account)
         .call();
       this.setState({ stakingBalance: stakingBalance.toString() });
 
-  const loadStakeEvents = async () => {
-    try {
-      const events = await tokenfarm.getPastEvents("Staked", { fromBlock: 0 });
-      const stakeEvents = events.map((event) => ({
-        staker: event.returnValues.staker,
-        amount: event.returnValues.amount,
-        timestamp: event.returnValues.timestamp,
-      }));
-      this.setState({ stakeEvents });
-      console.log(stakeEvents);
-    } catch (error) {
-      console.log(error);
+      // Load staking events
+      const loadStakeEvents = async () => {
+        try {
+          const events = await tokenfarm.getPastEvents("Staked", {
+            fromBlock: 0,
+          });
+          const stakeEvents = events.map((event) => ({
+            staker: event.returnValues.staker,
+            amount: event.returnValues.amount,
+            timestamp: event.returnValues.timestamp,
+          }));
+          this.setState({ stakeEvents });
+          console.log(stakeEvents);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      loadStakeEvents();
+
+      // Listen for new stake events
+      const eventEmitter = tokenfarm.events.Staked();
+      eventEmitter.on("data", (event) => {
+        const newStakeEvent = {
+          staker: event.returnValues.staker,
+          amount: event.returnValues.amount,
+          timestamp: event.returnValues.timestamp,
+        };
+        this.setState({
+          stakeEvents: [...this.state.stakeEvents, newStakeEvent],
+        });
+      });
+      eventEmitter.removeAllListeners();
+      // return () => {
+      // eventEmitter.removeAllListeners();
+      // };
+    } else {
+      window.alert(
+        "TokenFarm not deployed to current network. Please switch to a compatible network."
+      );
     }
-  };
 
-  loadStakeEvents();
-
-  const eventEmitter = tokenfarm.events.Staked();
-  eventEmitter.on("data", (event) => {
-    const newStakeEvent = {
-      staker: event.returnValues.staker,
-      amount: event.returnValues.amount,
-      timestamp: event.returnValues.timestamp,
-    };
-    this.setState({
-      stakeEvents: [...this.state.stakeEvents, newStakeEvent],
-    });
-  });
-  eventEmitter.removeAllListeners();
-  // return () => {
-  //    eventEmitter.removeAllListeners();
-  // };
-} else {
-  window.alert(
-    "TokenFarm not deployed to current network. Please switch to a compatible network."
-  );
-}
-
-this.setState({ loading: false });
+    this.setState({ loading: false });
   }
   isConnected = async () => Signer !== undefined;
   connectWallet = async () => {
@@ -162,8 +164,7 @@ this.setState({ loading: false });
       };
     }
   };
-  
-  
+
   stakeTokens = (amount) => {
     this.setState({ loading: true });
     this.state.credtoken.methods
@@ -179,7 +180,8 @@ this.setState({ loading: false });
           });
       });
   };
- 
+
+  // This function is used to unstake tokens
   unstakeTokens = () => {
     this.setState({ loading: true });
     this.state.tokenfarm.methods
@@ -191,6 +193,7 @@ this.setState({ loading: false });
       });
   };
 
+  // This function is used to issue tokens
   issueTokens = () => {
     this.setState({ loading: true });
     this.state.tokenfarm.methods
@@ -202,6 +205,7 @@ this.setState({ loading: false });
       });
   };
 
+  // This function is used to claim tokens
   claimTokens = () => {
     this.setState({ loading: true });
     this.state.tokenfarm.methods
@@ -213,15 +217,15 @@ this.setState({ loading: false });
       });
   };
 
-
   constructor(props) {
     super(props);
+    // Initializes the component's state
     this.state = {
       account: "0x0",
       credtoken: {},
       gains: {},
       tokenfarm: {},
-      stakeEvents:[],
+      stakeEvents: [],
       credtokenBalance: "0",
       gainsTokenBalance: "0",
       stakingBalance: "0",
@@ -229,10 +233,17 @@ this.setState({ loading: false });
     };
   }
 
+  // The render function defines the rendering logic for the component.
+  // It returns different content depending on the loading state of the component.
+  // If loading is true, a spinner is displayed.
+  // Otherwise, the main content of the component is rendered.
+
   render() {
     let content;
+    // Determine what to display based on the loading state
     this.state.loading
-      ? (content = (
+      ? // Display a spinner if loading is true
+        (content = (
           <div>
             <div
               class="card mt-5 text-center"
@@ -253,7 +264,8 @@ this.setState({ loading: false });
             </p>
           </div>
         ))
-      : (content = (
+      : // Display the main content if loading is false
+        (content = (
           <Main
             credtokenBalance={this.state.credtokenBalance}
             gainsTokenBalance={this.state.gainsTokenBalance}
@@ -267,7 +279,6 @@ this.setState({ loading: false });
             stakers={this.stakers}
             account={this.state.account}
             stakeEvents={this.state.stakeEvents}
-           
           />
         ));
 
@@ -279,28 +290,20 @@ this.setState({ loading: false });
         <TransactionProvider>
           <Connect />
         </TransactionProvider>
-        {/* <Navbar account={this.state.account}
-      connectWallet={this.connectWallet}
-      isConnected={this.isConnected} /> */}
-       <div className="container-fluid mt-5">
-  <div className="row">
-    <main
-      role="main"
-      className="col-lg-5 col-md-8 col-sm-10 ml-auto mr-auto"
-      style={{ maxWidth: "100%", minHeight: "100vh" }}
-    >
-      <div>{content}</div>
-    </main>
-  </div>
-
-
-        
-
+        <div className="container-fluid mt-5">
+          <div className="row">
+            <main
+              role="main"
+              className="col-lg-5 col-md-8 col-sm-10 ml-auto mr-auto"
+              style={{ maxWidth: "100%", minHeight: "100vh" }}
+            >
+              <div>{content}</div>
+            </main>
+          </div>
           <Footer />
         </div>
       </div>
     );
   }
 }
-
 export default App;

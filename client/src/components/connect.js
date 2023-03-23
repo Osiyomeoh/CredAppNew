@@ -1,16 +1,26 @@
-import React, { useContext, useState, useEffect } from "react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
 import bank from "../images/neww.png";
 import { shortenAddress } from "../utils/shortenAddress";
-import { Button, Modal } from "react-bootstrap";
+import { Button, Modal, Navbar, Nav } from "react-bootstrap";
 
 import { TransactionContext } from "../context/TransactionContext";
 
 const Connect = () => {
-  const { connectWallet,  disconnectWallet, currentAccount } = useContext(TransactionContext);
+  // Access the connectWallet, disconnectWallet, and currentAccount variables from the TransactionContext
+  const { connectWallet, disconnectWallet, currentAccount } = useContext(TransactionContext);
+
+  // Set up local state to manage the visibility of the documentation modal
   const [showModal, setShowModal] = useState(false);
+
+  // Set up local state to hold the current prices of cryptocurrencies
   const [cryptoPrices, setCryptoPrices] = useState([]);
 
-  // Fetch crypto prices from CoinGecko API
+  // Define a callback to disconnect the wallet that can be used in a useEffect hook
+  const disconnectWalletCallback = useCallback(() => {
+    disconnectWallet();
+  }, [disconnectWallet]);
+
+  // Fetch crypto prices from CoinGecko API and refresh every 10 seconds
   useEffect(() => {
     const fetchCryptoPrices = async () => {
       try {
@@ -25,25 +35,20 @@ const Connect = () => {
     };
     fetchCryptoPrices();
     const intervalId = setInterval(fetchCryptoPrices, 10000); // Refresh prices every 10 seconds
-    return () => clearInterval(intervalId);
+    return () => clearInterval(intervalId); // Clean up interval on component unmount
   }, []);
 
+  // Copy the user's wallet address to the clipboard and display a confirmation message on click
   const handleAddressClick = () => {
     navigator.clipboard.writeText(currentAccount);
     alert("Address copied to clipboard!");
   };
 
   return (
-    <nav
-      className="navbar navbar-expand-lg navbar-dark fixed-top shadow p-0 bg-dark"
-      style={{ height: "50px", opacity: ".85" }}
-    >
-      {/* Brand/logo */}
-      <a
-        href="/#"
-        className="navbar-brand col-sm-3 col-md-2 mr-0"
-        style={{ color: "white" }}
-      >
+    // Bootstrap Navbar component
+    <Navbar bg="dark" variant="dark" expand="lg" fixed="top" className="shadow p-0">
+      {/* Navbar brand */}
+      <Navbar.Brand href="/" style={{ color: "white" }}>
         <img
           src={bank}
           width="110"
@@ -51,109 +56,87 @@ const Connect = () => {
           className="d-inline-block align-top"
           alt="bank"
         />
-      </a>
-
-      {/* Mobile menu icon */}
-      <button
-        className="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#navbarNav"
-        aria-controls="navbarNav"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span className="navbar-toggler-icon"></span>
-      </button>
-
-      {/* Menu items */}
-      <div className="collapse navbar-collapse" id="navbarNav">
-        <ul className="navbar-nav mr-auto">
-          {/* Home */}
-
-          {/* About */}
-          <li>
+      </Navbar.Brand>
+      {/* Navbar toggle button for mobile */}
+      <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+      {/* Navbar items */}
+      <Navbar.Collapse id="responsive-navbar-nav">
+        <Nav className="mr-auto"></Nav>
+        <Nav>
+          {/* Documentation button that shows the modal */}
+          <Nav.Link>
             <Button variant="link" onClick={() => setShowModal(true)}>
               Documentation
             </Button>
-          </li>
-          
-        </ul>
-
-        {/* Crypto prices */}
-        <ul className="navbar-nav mx-auto">
-          {cryptoPrices && (
-            <li className="nav-item">
+          </Nav.Link>
+          {/* Marquee displaying cryptocurrency prices */}
+          <Nav.Link>
+            {cryptoPrices && (
               <marquee className="text-white" behavior="scroll" direction="left" scrollamount="3">
                 {Object.entries(cryptoPrices)
                   .map(([key, value]) => `${key.toUpperCase()}: $${value.usd}`)
                   .join(" | ")}
               </marquee>
-            </li>
-          )}
-        </ul>
+            )}
+          </Nav.Link>
+          {/* User's wallet address */}
+          <Nav.Link className="text-nowrap mr-3">
+            <small style={{ color: "white", cursor: "pointer" }} onClick={handleAddressClick}>
+              Address: {shortenAddress(currentAccount)}
+            </small>
+          </Nav.Link>
+          {/* Connect/disconnect wallet buttons */}
+          <Nav.Link>
+            {!currentAccount && (
+              <Button onClick={connectWallet} variant="info" size="sm">
+                Connect Wallet
+              </Button>
+            )}
+            {currentAccount && (
+              <div className="d-flex">
+                <Button variant="success" size="sm" disabled>
+                  Connected
+                </Button>
+                <Button onClick={disconnectWalletCallback} variant="danger" size="sm" className="ml-2">
+                  Swap_Account
+                </Button>
+              </div>
+            )}
+          </Nav.Link>
+        </Nav>
+      </Navbar.Collapse>
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Documentation</Modal.Title>
+        </Modal.Header>
 
-        {/* Address and Connect/Disconnect Wallet button */}
-    <ul className="navbar-nav">
-      {/* Address */}
-      <li className="text-nowrap nav-item d-none d-lg-block mr-3">
-        <small style={{ color: "white", cursor: "pointer" }} onClick={handleAddressClick}>
-          Address: {shortenAddress(currentAccount)}
-        </small>
-      </li>
-
-      {/* Connect/Disconnect Wallet button */}
-      <li className="nav-item">
-        {!currentAccount && (
-          <button
-            type="button"
-            onClick={connectWallet}
-            className="btn btn-info btn-sm"
-          >
-            Connect Wallet
-          </button>
-        )}
-        {currentAccount && (
-          <div className="d-flex">
-            <button
-              type="button"
-              className="btn btn-success btn-sm mr-2"
-              disabled
-            >
-              Connected
-            </button>
-            <button
-              type="button"
-              onClick={disconnectWallet}
-              className="btn btn-danger btn-sm"
-            >
-              Swap_Account
-            </button>
-          </div>
-        )}
-      </li>
-    </ul>
-
-    {/* Documentation Modal */}
-    <Modal show={showModal} onHide={() => setShowModal(false)}>
-      <Modal.Header closeButton>
-        <Modal.Title>Documentation</Modal.Title>
-      </Modal.Header>
+      
       <Modal.Body>
-        <p>Connect your MetaMask wallet to our platform.</p>
-        <p>
-          We currently support live test networks such as Rinkeby, Stardust,
-          Mumbai, and Meter.
-        </p>
-        <p>Claim 50 mUSDT tokens for staking.</p>
-        <p>Stake your mUSDT tokens and wait for 1 minute.</p>
-        <p>
-          While waiting, enjoy some particle interactions on our platform.
-        </p>
-        <p>
-          Once the timer ends, you will receive an airdrop of RWD tokens.
-        </p>
-        <p>You can unstake your mUSDT tokens anytime you want.</p>
+      <h1>About Credence</h1> {/* Heading for About page */}
+      <p>
+        Credence is a crypto staking app that allows users to earn rewards by
+        staking their cryptocurrency. Our platform uses a secure and reliable
+        system to ensure that your funds are always safe and accessible.
+      </p>
+      <p>
+        To participate, please make sure to follow these steps: {/* Steps to participate */}
+      </p>
+      <ol>
+        <li>Connect your MetaMask wallet to our platform if you are not already connected</li> {/* Step 1 */}
+        <li>We currently support live test network such as Mumbai</li> {/* Step 2 */}
+        <li>You can swap account on the test network and then refresh the page</li> {/* Step 3 */}
+        <li>Claim 50 mCred tokens for staking.</li> {/* Step 4 */}
+        <li>Stake your mCred tokens and wait for 1 minute.</li> {/* Step 5 */}
+        <li>While waiting, enjoy some particle interactions on our platform.</li> {/* Step 6 */}
+        <li>Once the timer ends, you will receive an airdrop of Gains tokens.</li> {/* Step 7 */}
+        <li>You can unstake your mCred tokens anytime you want.</li> {/* Step 8 */}
+        <li>Refresh the page after every transaction</li> {/* Step 9 */}
+      </ol>
+      <p>
+        Our team is dedicated to providing a seamless and user-friendly
+        experience for our customers. If you have any questions or feedback,
+        please feel free to contact us at support@credence.com. {/* Contact information */}
+      </p>
       </Modal.Body>
       <Modal.Footer>
         <Button variant="secondary" onClick={() => setShowModal(false)}>
@@ -161,9 +144,9 @@ const Connect = () => {
         </Button>
       </Modal.Footer>
     </Modal>
-  </div>
-</nav>
-  );
+
+</Navbar>
+);
 };
 
 export default Connect;
