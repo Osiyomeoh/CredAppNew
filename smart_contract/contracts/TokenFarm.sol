@@ -64,7 +64,7 @@ contract TokenFarm {
         totalStaked = totalStaked - balance;
 
         // reset staking balance.
-        [msg.sender] = 0;
+        stakingBalance[msg.sender] = 0;
 
         // Update Staking Status.
         isStaking[msg.sender] = false;
