@@ -33,9 +33,9 @@ https://github.com/Osiyomeoh <br>
 This is an example of how you can set up your project locally. To get a local copy up and running follow these simple example steps.
 
 # Clone the repo
-git clone with HTTPS          https://github.com/Osiyomeoh/CredApp.git
-git clone with SSH            git@github.com:Osiyomeoh/CredApp.git
-git clone with Github CLI     gh repo clone Osiyomeoh/CredApp <br>
+git clone with HTTPS          https://github.com/Osiyomeoh/CredAppNew.git
+git clone with SSH            git@github.com:Osiyomeoh/CredAppNew.git
+git clone with Github CLI     gh repo clone Osiyomeoh/CredAppNew <br>
 
 2. Development
 
