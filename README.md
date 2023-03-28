@@ -15,7 +15,7 @@ Project Snapshot
 
 ![Alt text](https://drive.google.com/uc?export=view&id=1kiUWxDEshfULxsYOcDhIx6_-OB7Hh8pj "Optional title")<br>
 Project Website Link
-https://genuine-bublanina-b991c3.netlify.app/// <br><br>
+https://credappnew.vercel.app/ <br><br>
 
 # Aknowledgement
 Credence is built on top of several open-source libraries and frameworks, including React, Node.js, and more. We would like to thank the developers of these projects for their contributions to the open-source community.<br>
