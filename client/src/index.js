@@ -4,8 +4,8 @@ import "bootstrap/dist/css/bootstrap.css"; // Bring in Bootstrap.
 import App from "./App.js";
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+ 
+    <App />,
+
   document.getElementById("root")
 );

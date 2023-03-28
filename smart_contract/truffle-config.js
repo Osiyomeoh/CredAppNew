@@ -7,6 +7,10 @@ const projectId1 = process.env.INFURA_PROJECT_ID_MUMBAI;
 const privateKey = process.env.DEPLOYER_SIGNER_PRIVATE_KEY;
 
 module.exports = {
+  plugins: ['truffle-plugin-verify'],
+  api_keys: {
+    etherscan: '3HYBUBZU6BR67SBU37TTB2JTDDZR7WXKRZ'
+  },
   networks: {
     development: {
       host: "127.0.0.1",

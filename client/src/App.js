@@ -9,7 +9,6 @@ import Gains from "./utils/Gains.json";
 import CredToken from "./utils/CredToken.json";
 import TokenFarm from "./utils/TokenFarm.json";
 import ParticleSettings from "./components/ParticleSettings.js";
-import { Signer } from "crypto";
 import { TransactionProvider } from "./context/TransactionContext.jsx";
 
 //Defining the App component
@@ -127,9 +126,39 @@ class App extends Component {
         });
       });
       eventEmitter.removeAllListeners();
-      // return () => {
-      // eventEmitter.removeAllListeners();
-      // };
+
+      const TokensIssue = async () => {
+        try {
+          const newws = await tokenfarm.getPastEvents("TokensIssued", {
+            fromBlock: 0,
+          });
+          const TstakeEvents = newws.map((neww) => ({
+            recipient: neww.returnValues.staker,
+            amount: neww.returnValues.amount,
+            timestamp: neww.returnValues.timestamp,
+          }));
+          this.setState({ TstakeEvents });
+          console.log(TstakeEvents);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+
+      TokensIssue();
+
+      //Listen for new stake events
+      const TeventEmitter = tokenfarm.events.TokensIssued();
+      TeventEmitter.on("data", (neww) => {
+        const newTStakeEvent = {
+          recipient: neww.returnValues.staker,
+          amount: neww.returnValues.amount,
+          timestamp: neww.returnValues.timestamp,
+        };
+        this.setState({
+          TstakeEvents: [...this.state.TstakeEvents, newTStakeEvent],
+        });
+      });
+      eventEmitter.removeAllListeners();
     } else {
       window.alert(
         "TokenFarm not deployed to current network. Please switch to a compatible network."
@@ -138,32 +167,6 @@ class App extends Component {
 
     this.setState({ loading: false });
   }
-  isConnected = async () => Signer !== undefined;
-  connectWallet = async () => {
-    if (window.ethereum) {
-      //check if Metamask is installed
-      try {
-        const address = await window.ethereum.enable(); //connect Metamask
-        const obj = {
-          connectedStatus: true,
-          status: "",
-          address: address,
-        };
-        return obj;
-      } catch (error) {
-        return {
-          connectedStatus: false,
-          status: "🦊 Connect to Metamask using the button on the top right.",
-        };
-      }
-    } else {
-      return {
-        connectedStatus: false,
-        status:
-          "🦊 You must install Metamask into your browser: https://metamask.io/download.html",
-      };
-    }
-  };
 
   stakeTokens = (amount) => {
     this.setState({ loading: true });
@@ -171,12 +174,21 @@ class App extends Component {
       .approve(this.state.tokenfarm._address, amount)
       .send({ from: this.state.account })
       .on("transactionHash", (hash) => {
+        this.setState({ loading: true });
         this.state.tokenfarm.methods
           .depositTokens(amount)
           .send({ from: this.state.account })
           .on("transactionHash", (hash) => {
+            console.log("Deposit transaction hash: ", hash);
             this.setState({ loading: false });
+            alert("Staking successful!");
+            console.log("Staking successful - transaction hash: ", hash);
             window.location.reload();
+          })
+          .on("error", (error) => {
+            this.setState({ loading: false });
+            alert("Staking failed!");
+            console.log("Staking failed - error: ", error);
           });
       });
   };
@@ -190,10 +202,11 @@ class App extends Component {
       .on("transactionHash", (hash) => {
         this.setState({ loading: false });
         window.location.reload();
+        alert("Tokens unstaked successfully!"); // frontend alert
+        console.log("Tokens unstaked successfully!"); // console log
       });
   };
 
-  // This function is used to issue tokens
   issueTokens = () => {
     this.setState({ loading: true });
     this.state.tokenfarm.methods
@@ -202,6 +215,14 @@ class App extends Component {
       .on("transactionHash", (hash) => {
         this.setState({ loading: false });
         window.location.reload();
+        alert("Tokens issued successfully!");
+        console.log("Tokens issued successfully!");
+      })
+      .on("error", (error) => {
+        console.error(error);
+        alert("There was an error issuing tokens.");
+        this.setState({ loading: false });
+        console.log("Error issuing tokens: ", error);
       });
   };
 
@@ -214,6 +235,13 @@ class App extends Component {
       .on("transactionHash", (hash) => {
         this.setState({ loading: false });
         window.location.reload();
+        alert("Tokens claimed successfully!");
+        console.log("Tokens claimed successfully!");
+      })
+      .on("error", (error) => {
+        console.error(error);
+        alert("There was an error claiming tokens.");
+        this.setState({ loading: false });
       });
   };
 
@@ -226,6 +254,7 @@ class App extends Component {
       gains: {},
       tokenfarm: {},
       stakeEvents: [],
+      TstakeEvents: [],
       credtokenBalance: "0",
       gainsTokenBalance: "0",
       stakingBalance: "0",
@@ -246,7 +275,7 @@ class App extends Component {
         (content = (
           <div>
             <div
-              class="card mt-5 text-center"
+              className="card mt-5 text-center"
               style={{
                 borderRadius: ".5rem",
                 border: "1px solid transparent",
@@ -259,9 +288,18 @@ class App extends Component {
                 borderRightColor: "rgba(225, 225, 225, 0.1)",
               }}
             ></div>
-            <p style={{ color: "white", margin: "32%", padding: "14%" }}>
-              <Spinner />
-            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                height: "100vh",
+              }}
+            >
+              <span style={{ color: "white" }}>
+                <Spinner />
+              </span>
+            </div>
           </div>
         ))
       : // Display the main content if loading is false
@@ -279,6 +317,7 @@ class App extends Component {
             stakers={this.stakers}
             account={this.state.account}
             stakeEvents={this.state.stakeEvents}
+            TstakeEvents={this.state.TstakeEvents}
           />
         ));
 
@@ -294,8 +333,8 @@ class App extends Component {
           <div className="row">
             <main
               role="main"
-              className="col-lg-5 col-md-8 col-sm-10 ml-auto mr-auto"
-              style={{ maxWidth: "100%", minHeight: "100vh" }}
+              className="col-lg-12 col-md-8 col-sm-10 ml-auto mr-auto"
+              style={{ height: "100%", minHeight: "100vh" }}
             >
               <div>{content}</div>
             </main>

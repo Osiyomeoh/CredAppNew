@@ -4,6 +4,10 @@ import Airdrop from "./components/Airdrop.js";
 import { Card } from "react-bootstrap";
 import Carousel from "react-bootstrap/Carousel";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Marquee from "react-fast-marquee";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import Tooltip from "react-bootstrap/Tooltip";
+import OverlayTrigger from "react-bootstrap/OverlayTrigger";
 
 function shortenAddress(address) {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
@@ -15,25 +19,16 @@ function convertToEther(amount) {
 
 function formatDate(timestamp) {
   const date = new Date(timestamp * 1000);
-  const day = date
-    .getDate()
-    .toString()
-    .padStart(2, "0");
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const year = date.getFullYear();
-  const hours = date
-    .getHours()
-    .toString()
-    .padStart(2, "0");
-  const minutes = date
-    .getMinutes()
-    .toString()
-    .padStart(2, "0");
-  const seconds = date
-    .getSeconds()
-    .toString()
-    .padStart(2, "0");
-  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+  const options = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: true,
+  };
+  return date.toLocaleString("en-US", options);
 }
 
 class Main extends Component {
@@ -42,9 +37,9 @@ class Main extends Component {
     this.state = {
       historyList: [],
       count: 0,
+      showConfirmationDialog: false, // track if the confirmation dialog should be shown
     };
   }
-
   componentDidUpdate(prevProps) {
     if (prevProps.stakingBalance !== this.props.stakingBalance) {
       let date = new Date().toLocaleString();
@@ -79,11 +74,15 @@ class Main extends Component {
     }
   }
   render() {
+    const condition = true;
+    const value = 10;
+    const tooltip = <Tooltip id="tooltip">Click to claim mCred</Tooltip>;
     const styles = {
       body: {
         backgroundColor: "transparent",
         padding: "0",
       },
+
       carousel: {
         backgroundColor: "transparent",
       },
@@ -110,7 +109,7 @@ class Main extends Component {
       <div>
         {/* Card container for displaying the app message */}
         <div
-          className="card mt-5 text-center"
+          className="card mt-5 text-center "
           style={{
             borderRadius: ".5rem",
             border: "1px solid transparent",
@@ -121,71 +120,107 @@ class Main extends Component {
             borderLeftColor: "rgba(225, 225, 225, 0.5)",
             borderBottomColor: "rgba(225, 225, 225, 0.1)",
             borderRightColor: "rgba(225, 225, 225, 0.1)",
+            maxWidth: "500px",
+            margin: "0 auto",
           }}
         >
           {/* Scrolling message */}
-          <div class="container">
-            <div class="row">
-              <div class="col">
-                <marquee behavior="scroll" direction="left" scrollamount="3">
-                  <span class="font-weight-bold text-danger">
-                    Click on the Documentation tab on the menu to understand how
-                    the app works
-                  </span>
-                </marquee>
+          <div className="container">
+            <div className="row">
+              <div className="col">
+                <Marquee
+                  speed={25}
+                  direction="left"
+                  pauseOnHover={true}
+                  gradient={false}
+                  style={{
+                    backgroundColor: "white",
+                    padding: "7px",
+                    borderRadius: "5px",
+                    fontWeight: "bold",
+                    fontSize: "15px",
+                  }}
+                >
+                  Click on the Documentation tab on the menu to understand how
+                  the app works&nbsp;&nbsp;
+                </Marquee>
               </div>
             </div>
           </div>
         </div>
 
         {/* Main content container */}
-        <div id="content" className="mt-5">
-          {/* Claim USDT button */}
-          <button
-            type="submit"
-            onClick={(event) => {
-              event.preventDefault(this.props.claimTokens());
-            }}
-            className="btn btn-outline-light btn-md btn-block btn-white-space nowrap tr"
-          >
-            Claim mCred
-          </button>
+        <div
+          id="content"
+          className="mt-5"
+          style={{ maxWidth: "500px", margin: "0 auto" }}
+        >
+          {/* Claim mcred button */}
+          <OverlayTrigger placement="top" overlay={tooltip}>
+            <button
+              type="submit"
+              onClick={(event) => {
+                event.preventDefault(this.props.claimTokens());
+              }}
+              className="btn btn-outline-light btn-md btn-block btn-white-space nowrap tr"
+              style={{
+                transition: "background-color 0.2s ease-out",
+                backgroundColor: "#007bff",
+                borderColor: "#007bff",
+                color: "#fff",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = "#28a745";
+                e.target.style.borderColor = "#28a745";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = "#007bff";
+                e.target.style.borderColor = "#007bff";
+              }}
+            >
+              Claim mCred
+            </button>
+          </OverlayTrigger>
           &nbsp;&nbsp;
           {/* Table displaying staking and reward balances */}
-          <table className="table text-muted text-center">
-            <thead>
-              <tr style={{ color: "white" }}>
-                <th scope="col">Staking Balance</th>
-                <th scope="col">Gains Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={{ color: "white" }}>
-                <td>
-                  {window.web3.utils.fromWei(
-                    this.props.stakingBalance,
-                    "Ether"
-                  ) + " mCred"}
-                </td>
-
-                <td>
-                  {/* Convert reward balance from Wei to RWD */}
-                  {window.web3.utils.fromWei(
-                    this.props.gainsTokenBalance,
-                    "Ether"
-                  )}{" "}
-                  Gs
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="card mb-2 bg-transparent">
+            <div className="card-header bg-dark text-light text-center">
+              Staking Information
+            </div>
+            <div className="card-body">
+              <table className="table text-muted text-center">
+                <thead>
+                  <tr>
+                    <th>Staking Balance</th>
+                    <th>Gains Balance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      {window.web3.utils.fromWei(
+                        this.props.stakingBalance,
+                        "Ether"
+                      ) + " mCred"}
+                    </td>
+                    <td>
+                      {window.web3.utils.fromWei(
+                        this.props.gainsTokenBalance,
+                        "Ether"
+                      )}{" "}
+                      Gs
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
           {/* Form for staking tokens */}
           <div
             className="card mb-2"
             style={{
               borderRadius: ".5rem",
               border: "1px solid transparent",
-              backgroundColor: "rgba(137, 145, 211, .7)",
               backdropFilter: "blur(0.2rem)",
               boxShadow: "1.3rem 1.3rem 1.3rem rgba(0, 0, 0, 0.1)",
               borderTopColor: "rgba(225, 225, 225, 0.5)",
@@ -193,6 +228,7 @@ class Main extends Component {
 
               borderBottomColor: "rgba(225, 225, 225, 0.1)",
               borderRightColor: "rgba(225, 225, 225, 0.1)",
+              backgroundColor: "transparent",
             }}
           >
             <form
@@ -218,8 +254,8 @@ class Main extends Component {
               >
                 {/* display the balance of the token in the wallet */}
                 <span
-                  className="float-right"
-                  style={{ color: "white", margin: "8px", marginRight: "1px" }}
+                  className="float-right px-3 py-2 bg-secondary text-white font-weight-bold"
+                  style={{ fontSize: "1.2rem" }}
                 >
                   Balance:{" "}
                   {window.web3.utils.fromWei(
@@ -227,6 +263,7 @@ class Main extends Component {
                     "Ether"
                   )}
                 </span>
+
                 {/* input field for the amount of tokens to be staked */}
                 <div className="input-group mb-4 ml-0.6">
                   <input
@@ -258,23 +295,94 @@ class Main extends Component {
                     </div>
                   </div>
                 </div>
+
                 {/* button for staking tokens */}
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-lg btn-block btn-white-space nowrap"
-                >
-                  Stake
-                </button>
-                {/* button for unstaking all tokens */}
-                <button
-                  type="submit"
-                  onClick={(event) => {
-                    event.preventDefault(this.props.unstakeTokens());
-                  }}
-                  className="btn btn-primary btn-lg btn-block btn-white-space nowrap"
-                >
-                  Unstake All
-                </button>
+                <div style={{}}>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <button
+                      type="submit"
+                      className="btn btn-success btn-lg btn-block btn-white-space"
+                      style={{
+                        width: "100%",
+                        marginBottom: "10px",
+                        borderRadius: "25px",
+                      }}
+                    >
+                      Stake
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    <button
+                      type="submit"
+                      onClick={() =>
+                        this.setState({ showConfirmationDialog: true })
+                      } // show the confirmation dialog when clicked
+                      className="btn btn-danger btn-lg btn-block btn-white-space"
+                      style={{
+                        width: "100%",
+                        marginTop: "10px",
+                        borderRadius: "25px",
+                      }}
+                    >
+                      Unstake
+                    </button>
+
+                    {/* Confirmation dialog */}
+                    {this.state.showConfirmationDialog && (
+                      <div className="modal show d-block" tabIndex="-1">
+                        <div className="modal-dialog">
+                          <div className="modal-content">
+                            <div className="modal-header">
+                              <h5 className="modal-title">Confirm Unstaking</h5>
+                              <button
+                                type="button"
+                                className="close"
+                                data-dismiss="modal"
+                                aria-label="Close"
+                                onClick={() =>
+                                  this.setState({
+                                    showConfirmationDialog: false,
+                                  })
+                                } // hide the confirmation dialog when closed
+                              >
+                                <span aria-hidden="true">&times;</span>
+                              </button>
+                            </div>
+                            <div className="modal-body">
+                              Are you sure you want to unstake your tokens?
+                            </div>
+                            <div className="modal-footer">
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                data-dismiss="modal"
+                                onClick={() =>
+                                  this.setState({
+                                    showConfirmationDialog: false,
+                                  })
+                                } // hide the confirmation dialog when cancelled
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="submit"
+                                className="btn btn-danger"
+                                onClick={() => {
+                                  this.props.unstakeTokens(); // unstake tokens when confirmed
+                                  this.setState({
+                                    showConfirmationDialog: false,
+                                  }); // hide the confirmation dialog
+                                }}
+                              >
+                                Confirm
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </form>
             {/* display the Airdrop component for issuing tokens */}
@@ -285,18 +393,23 @@ class Main extends Component {
                 issueTokens={this.props.issueTokens}
               />
             </div>
-
-            {/* display the stake events as a carousel */}
-            <Card bg="transparent" border="light">
+          </div>
+        </div>
+        <div
+          className="row justify-content-center"
+          style={{ maxWidth: "900px", margin: "0 auto" }}
+        >
+          <div className="col-md-6">
+            <Card bg="transparent" border="light" className="mx-auto">
               <Card.Header>
-                <h1>Stake Events</h1>
+                <h1 className="text-center">Stake Events</h1>
               </Card.Header>
               <Card.Body style={styles.body}>
                 {/* if there are stake events, display them in a carousel */}
                 {this.props.stakeEvents ? (
                   <Carousel
                     interval={5000}
-                    pause={false}
+                    pause={condition ? value.toString() : undefined}
                     style={{ display: "flex", justifyContent: "center" }}
                   >
                     {this.props.stakeEvents.map((event, index) => (
@@ -311,14 +424,83 @@ class Main extends Component {
                         />
                         <Card.Body>
                           <Card.Title style={styles.title}>
-                            {shortenAddress(event.staker)}
+                            <CopyToClipboard text={event.staker}>
+                              <span
+                                style={{
+                                  cursor: "pointer",
+                                  text: "underline",
+                                }}
+                                className="text-primary"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                title="Click to copy"
+                              >
+                                {shortenAddress(event.staker)}
+                              </span>
+                            </CopyToClipboard>
                           </Card.Title>
                           <Card.Text>
-                            Amount (ETH):{" "}
+                            Amount (mCred):{" "}
                             {convertToEther(event.amount).toFixed(4)}
+                            &nbsp;&nbsp;
+                            <span> {formatDate(event.timestamp)}</span>
                           </Card.Text>
+                        </Card.Body>
+                      </Card>
+                    ))}
+                  </Carousel>
+                ) : (
+                  <p>No stake events found.</p>
+                )}
+              </Card.Body>
+            </Card>
+          </div>
+          <div className="col-md-6">
+            {/* display the stake events as a carousel */}
+
+            <Card bg="transparent" border="light" className="mx-auto">
+              <Card.Header>
+                <h1 className="text-center">Gains Events</h1>
+              </Card.Header>
+              <Card.Body style={styles.body}>
+                {/* if there are stake events, display them in a carousel */}
+                {this.props.TstakeEvents ? (
+                  <Carousel
+                    interval={5000}
+                    pause={condition ? value.toString() : undefined}
+                    style={{ display: "flex", justifyContent: "center" }}
+                  >
+                    {this.props.TstakeEvents.map((neww, index) => (
+                      <Card
+                        key={index}
+                        style={{ ...styles.card, width: "400px" }}
+                      >
+                        <Card.Img
+                          variant="top"
+                          src={`https://source.unsplash.com/500x300/?technology/${index}`}
+                          style={styles.image}
+                        />
+                        <Card.Body>
+                          <Card.Title style={styles.title}>
+                            <CopyToClipboard text={neww.staker}>
+                              <span
+                                style={{
+                                  cursor: "pointer",
+                                  textDecoration: "underline",
+                                }}
+                                className="text-primary"
+                                data-toggle="tooltip"
+                                data-placement="top"
+                                title="Click to copy"
+                              >
+                                {shortenAddress(neww.recipient)}
+                              </span>
+                            </CopyToClipboard>
+                          </Card.Title>
                           <Card.Text>
-                            Timestamp: {formatDate(event.timestamp)}
+                            Gains (mCred):{" "}
+                            {convertToEther(neww.amount).toFixed(4)}
+                            &nbsp;&nbsp; {formatDate(neww.timestamp)}
                           </Card.Text>
                         </Card.Body>
                       </Card>

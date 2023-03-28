@@ -27,6 +27,8 @@ contract TokenFarm {
         owner = msg.sender;
     }
     event Staked(address indexed staker, uint256 amount, uint256 timestamp);
+    event TokensIssued(address indexed staker, uint256 amount, uint256 timestamp);
+
 
     function depositTokens(uint256 _amount) public {
         // Require staking amount to be greater than 0.
@@ -79,17 +81,20 @@ contract TokenFarm {
         for (uint256 i = 0; i < stakers.length; i++) {
             // Loop through all the stakers in the array.
             address recipient = stakers[i]; // Those who have stake go to the recipient address.
-            uint256 balance = stakingBalance[recipient] / 5; // We set a balance equal to 1/5th of the staking balance to create percentage incentive for stakers.
+            uint256 balance = stakingBalance[recipient] / 2; // We set a balance equal to 1/5th of the staking balance to create percentage incentive for stakers.
             if (balance > 0) {
                 gains.transfer(recipient, balance); // Transfer the balance to the recipient.
+                
             }
+            emit TokensIssued(recipient, balance, block.timestamp);
+
         }
     }
 
     // Issue 1000 USDT for everyone entering the app.
     function claimTokens() public {
         // transfer 1000 USDT tokens to the specified contract address from our bank.
-        uint256 starting_balance = 50000000000000000000;
+        uint256 starting_balance = 10000000000000000000;
         credtoken.transfer(msg.sender, starting_balance);
     }
 }

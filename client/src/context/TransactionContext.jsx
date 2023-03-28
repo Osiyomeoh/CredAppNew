@@ -33,23 +33,27 @@ export const TransactionProvider = ({ children }) => {
   // Define a function to connect the user's wallet
   const connectWallet = async () => {
     try {
-      // If the ethereum object is not available, prompt the user to install MetaMask
-      if (!ethereum) return alert("Please install MetaMask.");
-
-      // Call the `eth_requestAccounts` method on the ethereum object to request the user's accounts
-      const accounts = await ethereum.request({ method: "eth_requestAccounts", });
-
-      // Set the current account state to the first account returned by the method
+      if (!ethereum) {
+        alert("Please install MetaMask.");
+        return;
+      }
+  
+      const accounts = await ethereum.request({ method: "eth_requestAccounts" });
+  
       setCurrentAccount(accounts[0]);
-      // Reload the page to reflect the updated account information
+  
+      alert("Wallet connected successfully!");
+      console.log("Wallet connected successfully!");
+  
       window.location.reload();
     } catch (error) {
-      console.log(error);
-
-      // Throw an error if the ethereum object is not available
-      // throw new Error("No ethereum object");
+      console.error(error);
+  
+      alert("There was an error connecting your wallet.");
+      console.log("Error connecting wallet:", error);
     }
   };
+  
   
   // Define a function to disconnect the user's wallet
   const disconnectWallet = async () => {
