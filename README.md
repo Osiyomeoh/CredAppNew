@@ -2,8 +2,7 @@
 ##  Decentralized crptocurrency investment platform <br> <br>
 
 ## Project Description <br>
-A Decentralized Finance Cryptocurrency Lending and investing Application that offers a transparent, permissionless, and open-source financial service environment that will phase out loan apps as we know it in Nigeria. With the use of blockchain technology and smart contracts, Individuals can make interest on their crypto assets without having to deal with a third party like the banks.
-Borrowers will be able to make request for loan using p2p lending deposit ether into a vault and use it as collateral to borrow a stable token that will be tied to a fixed fiat money such as the dollar, the amount that can be borrowed depends on the current value of ether at any point in time the user can return the token borrowed and collect the amount of ether stored in the vault. Lenders can also give their crypto asset for good return on investment.
+A Decentralized Finance Cryptocurrency Staking Application that offers a transparent, permissionless, and open-source financial service environment Staking platform that allows users to earn rewards for holding and staking cryptocurrencies. With Credence, you can stake your crypto holdings and earn rewards
 Project Snapshot
 ![Alt text](https://drive.google.com/uc?export=view&id=1jyVIwOtZT8czVIVqwv2keEsahowQ1_tw "Optional title")
 
@@ -19,8 +18,9 @@ Project Website Link
 https://genuine-bublanina-b991c3.netlify.app/// <br><br>
 
 # Aknowledgement
+Credence is built on top of several open-source libraries and frameworks, including React, Node.js, and more. We would like to thank the developers of these projects for their contributions to the open-source community.
+Kai Everdream chrisstef(github username)
 grandida Management
-
 udemy.com
 
 # Project Authors
