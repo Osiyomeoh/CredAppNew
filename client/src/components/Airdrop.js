@@ -59,7 +59,7 @@ class Airdrop extends Component {
   airdropReleaseTokens() {
     let stakingB = this.props.stakingBalance;
     if (stakingB >= "1000000000000000000") {
-      // If staking balance is more than 50 usdt, begin the airdrop of reward token.
+      // If staking balance is more than 1 mcred, begin the airdrop of reward token.
       this.startTimer();
     }
   }

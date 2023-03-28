@@ -163,7 +163,7 @@ const Connect = () => {
               You can swap account on the test network and then refresh the page
             </li>{" "}
             {/* Step 3 */}
-            <li>Claim 50 mCred tokens for staking.</li> {/* Step 4 */}
+            <li>Claim 10 mCred tokens for staking.</li> {/* Step 4 */}
             <li>Stake your mCred tokens and wait for 1 minute.</li>{" "}
             {/* Step 5 */}
             <li>
