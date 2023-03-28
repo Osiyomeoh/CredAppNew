@@ -62,7 +62,19 @@ DEPLOYER_SIGNER_PRIVATE_KEY=<YOUR_PRIVATE_KEY_HERE>
 INFURA_PROJECT_ID_MUMBAI=<API_KEY>
 
 ```
+# Deployment
 
+1. CredToken Smart Contract "0xDA366c8de2096A7Dd693CF3B32dA5a2766A95Dc2"
+
+   verified link https://sourcify.dev/#/lookup/0xDA366c8de2096A7Dd693CF3B32dA5a2766A95Dc2
+
+2. Gains Smart Contract "0x08d25941A9a46BCFdBcae10775aFEd30d3571203"
+
+    verified link https://sourcify.dev/#/lookup/0x08d25941A9a46BCFdBcae10775aFEd30d3571203
+
+3. TokenFarm  Smart Contract "0x8ec6929cd6a558D01e0473b986997bfbf51dCF08"
+
+     verified link https://sourcify.dev/#/lookup/0x8ec6929cd6a558D01e0473b986997bfbf51dCF08
 
 ## LICENSE <br>
 <p>MIT </p>
