@@ -24,7 +24,7 @@ grandida Management<br>
 udemy.com<br>
 
 # Project Authors
-Samuel Osiyomeoh Samuel
+Aleonomoh
 
 https://github.com/Osiyomeoh <br>
 
